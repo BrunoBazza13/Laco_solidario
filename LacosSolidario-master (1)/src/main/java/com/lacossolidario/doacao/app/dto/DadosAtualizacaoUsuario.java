@@ -12,9 +12,9 @@ public record DadosAtualizacaoUsuario(
         @Email
         String login,
         String senha,
-        String telefone,
-       @Lob
-        byte[] imagem
+        String telefone
+//       @Lob
+//        byte[] imagem
 
 ) {
 }

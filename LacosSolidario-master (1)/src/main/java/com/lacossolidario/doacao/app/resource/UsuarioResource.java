@@ -100,7 +100,7 @@ public class UsuarioResource {
 		usuarioService.criaUsuario(usuario);
 
 //
-        var uri = uriBuilder.path("/usuario/{id}").buildAndExpand(usuario.getId()).toUri();
+		var uri = uriBuilder.path("/usuario/{id}").buildAndExpand(usuario.getId()).toUri();
 		return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
 	}
 
@@ -122,13 +122,11 @@ public class UsuarioResource {
 		} else {
 			Usuario usuario = (Usuario) auth.getPrincipal();
 			Long userId = usuario.getId();
-			
+
 //			 Map<String, Object> response = new HashMap<>();
 //		        response.put("token", token);
 //		        response.put("usuarioId", userId);
-			
-			
-			
+
 			return ResponseEntity.status(HttpStatus.OK).body(userId);
 		}
 	}
@@ -141,66 +139,66 @@ public class UsuarioResource {
 //		return ResponseEntity.ok(list);
 //	}
 
-
 	@GetMapping("/{id}")
 	public ResponseEntity detalharPorId(@PathVariable Long id) {
-	    Optional<Usuario> optionalUsuario = repository.findById(id);
-	    
-	    if (optionalUsuario.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-	    }
+		Optional<Usuario> optionalUsuario = repository.findById(id);
 
-	    Usuario usuario = optionalUsuario.get();
-	    
-	    if (usuario instanceof HibernateProxy) {
-	        usuario = (Usuario) ((HibernateProxy) usuario).getHibernateLazyInitializer().getImplementation();
-	    }
-	    
-	    if (usuario instanceof Doador) {
-	        Doador doador = (Doador) usuario;
-	        return ResponseEntity.ok(new DadosListagemUsuario(doador));
-	    }
+		if (optionalUsuario.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 
-	    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		Usuario usuario = optionalUsuario.get();
+
+		if (usuario instanceof HibernateProxy) {
+			usuario = (Usuario) ((HibernateProxy) usuario).getHibernateLazyInitializer().getImplementation();
+		}
+
+		if (usuario instanceof Doador) {
+			Doador doador = (Doador) usuario;
+			return ResponseEntity.ok(new DadosListagemUsuario(doador));
+		}
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoUsuario dados, @RequestPart("imagem") MultipartFile imagem) {
-	    try {
-	    	
-	    	 Optional<Usuario> optionalUsuario = repository.findById(id);
-	    	 	    
-	    	 
-	    	 if (optionalUsuario.isEmpty()) {
-	    		 System.out.println("chegou aqui");
-	 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-	 	    }
-	    	 
-	    	 Usuario usuario = optionalUsuario.get();
-	    	 usuario.setImagem(imagem.getBytes());
-	    	 
-	    	 if (usuario instanceof HibernateProxy) {
-	 	        usuario = (Usuario) ((HibernateProxy) usuario).getHibernateLazyInitializer().getImplementation();
-	 	    }
-	    	 
-	    	 if (usuario instanceof Doador) {
-	    		 System.err.println("chegou aqui");
-	    		 Doador doador = (Doador) usuario;
-	             doador.atualizarDados(dados, imagem);
-	           
-	             repository.save(doador);
-	    	 }
-	    	
-	    }catch (Exception e) {
-	    	  e.printStackTrace();
-		       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar a imagem: " + e.getMessage());
-	    	
+	public ResponseEntity<?> atualizar(@PathVariable Long id, @ModelAttribute @Valid DadosAtualizacaoUsuario dados,
+			@RequestParam(value = "imagem", required = false) MultipartFile imagem) {
+		try {
+
+			Optional<Usuario> optionalUsuario = repository.findById(id);
+
+			if (optionalUsuario.isEmpty()) {
+				System.out.println("chegou aqui");
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+			}
+
+			Usuario usuario = optionalUsuario.get();
+			// usuario.setImagem(imagem.getBytes());
+
+			if (usuario instanceof HibernateProxy) {
+				usuario = (Usuario) ((HibernateProxy) usuario).getHibernateLazyInitializer().getImplementation();
+			}
+
+			if (usuario instanceof Doador) {
+				System.err.println("chegou aqui");
+				Doador doador = (Doador) usuario;
+				doador.atualizarDados(dados, imagem);
+
+				repository.save(doador);
+				return ResponseEntity.ok(new DadosListagemUsuario(doador));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Erro ao processar a imagem: " + e.getMessage());
+
 		}
 		return null;
-	       
-	        
-	     
+
 	}
+
 	@DeleteMapping("/{id}")
 	@Transactional
 	public ResponseEntity desativarUsuario(@PathVariable Long id) {
